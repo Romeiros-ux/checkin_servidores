@@ -2,6 +2,54 @@
 
 {% block conteudo %}
 <style>
+    .user-bar {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .user-name {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .btn-logout {
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .btn-logout:hover {
+        background: #d32f2f;
+    }
+    
+    .btn-gerenciar {
+        background: #FF9800;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    
+    .btn-gerenciar:hover {
+        background: #F57C00;
+    }
+
     #popup{
         background-color: white;
         border: solid 1px black;
@@ -26,6 +74,14 @@
         }
     }
 </style>
+
+<div class="user-bar">
+    <span class="user-name">{% if nivel == 'master' %}👑{% else %}👤{% endif %} {{ operador }}</span>
+    {% if nivel == 'master' %}
+    <a href="/gerenciar_operadores"><button class="btn-gerenciar">⚙️ Operadores</button></a>
+    {% endif %}
+    <a href="/logout"><button class="btn-logout">Sair</button></a>
+</div>
 
 <div class="box">
     <label for="numeroPulseira">Buscar numero de Pulseira</label>

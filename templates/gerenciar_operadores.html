@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+
+{% block conteudo %}
+
+<style>
+    .user-bar {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .user-name {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .btn-logout {
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    
+    .titulo {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+    }
+    
+    .form-adicionar {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+    
+    .btn-adicionar {
+        width: 100%;
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .btn-adicionar:hover {
+        background: #45a049;
+    }
+    
+    .lista-operadores {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .operador-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .operador-item:last-child {
+        border-bottom: none;
+    }
+    
+    .operador-info {
+        flex: 1;
+    }
+    
+    .operador-nome {
+        font-weight: bold;
+        font-size: 18px;
+        color: #333;
+    }
+    
+    .btn-deletar {
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    .btn-deletar:hover {
+        background: #d32f2f;
+    }
+    
+    .mensagem {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .mensagem.sucesso {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .mensagem.erro {
+        background: #f44336;
+        color: white;
+    }
+    
+    .btn-voltar {
+        background: #2196F3;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+    
+    .btn-voltar:hover {
+        background: #1976D2;
+    }
+</style>
+
+<div class="user-bar">
+    <span class="user-name">👑 {{ operador }} (Master)</span>
+    <a href="/logout"><button class="btn-logout">Sair</button></a>
+</div>
+
+<div class="container">
+    <a href="/checkin" class="btn-voltar">← Voltar ao Checkin</a>
+    
+    <h1 class="titulo">🔧 Gerenciar Operadores</h1>
+    
+    {% if mensagem %}
+    <div class="mensagem {{ tipo_mensagem }}">{{ mensagem }}</div>
+    {% endif %}
+    
+    <div class="form-adicionar">
+        <h2>Adicionar Novo Operador</h2>
+        <form method="POST" action="/adicionar_operador">
+            <div class="form-group">
+                <label for="usuario">Nome de Usuário</label>
+                <input type="text" id="usuario" name="usuario" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" required>
+            </div>
+            
+            <button type="submit" class="btn-adicionar">Adicionar Operador</button>
+        </form>
+    </div>
+    
+    <div class="lista-operadores">
+        <h2>Operadores Cadastrados</h2>
+        {% if operadores %}
+            {% for usuario, dados in operadores.items() %}
+            <div class="operador-item">
+                <div class="operador-info">
+                    <div class="operador-nome">👤 {{ usuario }}</div>
+                </div>
+                <form method="POST" action="/deletar_operador" style="display: inline;">
+                    <input type="hidden" name="usuario" value="{{ usuario }}">
+                    <button type="submit" class="btn-deletar" onclick="return confirm('Tem certeza que deseja remover o operador {{ usuario }}?')">Remover</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: #999; padding: 20px;">Nenhum operador cadastrado</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
