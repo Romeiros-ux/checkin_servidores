@@ -5,50 +5,100 @@
 <style>
     .user-bar {
         position: fixed;
-        top: 10px;
-        right: 10px;
-        background: white;
-        padding: 10px 15px;
-        border-radius: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+        backdrop-filter: blur(15px);
+        padding: 12px 16px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5);
         display: flex;
         gap: 10px;
         align-items: center;
+        justify-content: space-between;
         z-index: 1000;
+        flex-wrap: wrap;
+        border: 2px solid rgba(255, 255, 255, 0.5);
     }
     
     .user-name {
-        font-weight: bold;
-        color: #333;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 15px;
+        flex: 1;
+        min-width: 90px;
+        letter-spacing: 0.3px;
+    }
+    
+    .btn-logout, .btn-gerenciar {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        min-height: 40px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
     }
     
     .btn-logout {
-        background: #f44336;
+        background: linear-gradient(135deg, #f44336, #e53935);
         color: white;
-        border: none;
-        padding: 5px 15px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-size: 14px;
     }
     
     .btn-logout:hover {
-        background: #d32f2f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(244, 67, 54, 0.3);
+    }
+    
+    .btn-logout:active {
+        background: linear-gradient(135deg, #e53935, #c62828);
+        transform: scale(0.96);
     }
     
     .btn-gerenciar {
-        background: #FF9800;
+        background: linear-gradient(135deg, #FF9800, #F57C00);
         color: white;
-        border: none;
-        padding: 5px 15px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-size: 14px;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .btn-gerenciar:hover {
-        background: #F57C00;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(255, 152, 0, 0.3);
+    }
+    
+    .btn-gerenciar:active {
+        background: linear-gradient(135deg, #F57C00, #E64A19);
+        transform: scale(0.96);
+    }
+    
+    @media (max-width: 400px) {
+        .user-bar {
+            top: 8px;
+            right: 8px;
+            left: 8px;
+            padding: 10px 12px;
+            gap: 8px;
+        }
+        
+        .user-name {
+            font-size: 14px;
+        }
+        
+        .btn-logout, .btn-gerenciar {
+            padding: 8px 12px;
+            font-size: 13px;
+            min-height: 36px;
+        }
     }
 </style>
 

@@ -124,10 +124,29 @@
         padding: 8px 20px;
         border-radius: 5px;
         cursor: pointer;
+        margin-left: 5px;
     }
     
     .btn-deletar:hover {
         background: #d32f2f;
+    }
+    
+    .btn-editar {
+        background: #FF9800;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    .btn-editar:hover {
+        background: #F57C00;
+    }
+    
+    .btn-actions {
+        display: flex;
+        gap: 5px;
     }
     
     .mensagem {
@@ -203,10 +222,13 @@
                 <div class="operador-info">
                     <div class="operador-nome">👤 {{ usuario }}</div>
                 </div>
-                <form method="POST" action="/deletar_operador" style="display: inline;">
-                    <input type="hidden" name="usuario" value="{{ usuario }}">
-                    <button type="submit" class="btn-deletar" onclick="return confirm('Tem certeza que deseja remover o operador {{ usuario }}?')">Remover</button>
-                </form>
+                <div class="btn-actions">
+                    <button type="button" class="btn-editar" onclick="editarOperador('{{ usuario }}')">✏️ Editar</button>
+                    <form method="POST" action="/deletar_operador" style="display: inline;">
+                        <input type="hidden" name="usuario" value="{{ usuario }}">
+                        <button type="submit" class="btn-deletar" onclick="return confirm('Tem certeza que deseja remover o operador {{ usuario }}?')">🗑️ Remover</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         {% else %}
@@ -214,5 +236,50 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal de Edição -->
+<div id="modalEditar" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
+        <h2 style="margin-top: 0;">Editar Operador</h2>
+        <form method="POST" action="/editar_operador">
+            <input type="hidden" id="edit_usuario_antigo" name="usuario_antigo">
+            
+            <div class="form-group">
+                <label for="edit_usuario">Nome de Usuário</label>
+                <input type="text" id="edit_usuario" name="usuario" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_senha">Nova Senha (deixe em branco para manter a atual)</label>
+                <input type="password" id="edit_senha" name="senha">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-adicionar" style="flex: 1;">Salvar</button>
+                <button type="button" class="btn-deletar" style="flex: 1;" onclick="fecharModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function editarOperador(usuario) {
+        document.getElementById('edit_usuario_antigo').value = usuario;
+        document.getElementById('edit_usuario').value = usuario;
+        document.getElementById('edit_senha').value = '';
+        document.getElementById('modalEditar').style.display = 'flex';
+    }
+    
+    function fecharModal() {
+        document.getElementById('modalEditar').style.display = 'none';
+    }
+    
+    // Fechar modal ao clicar fora
+    document.getElementById('modalEditar').addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModal();
+        }
+    });
+</script>
 
 {% endblock %}

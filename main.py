@@ -105,7 +105,7 @@ def checkin():
 
 @app.route("/buscar", methods=["GET"])
 def buscar():
-    df = pd.read_csv(arquivo, encoding='latin1', dtype=str, on_bad_lines='skip')
+    df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
     df.columns = df.columns.str.lower()
     
     # Substituir NaN e valores vazios por string vazia
@@ -137,7 +137,7 @@ def buscar_pulseira():
 
 @app.route("/buscar_numero", methods=["GET"])
 def buscar_numero():
-    df = pd.read_csv(arquivo, encoding='latin1', dtype=str, on_bad_lines='skip')
+    df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
     df.columns = df.columns.str.lower()
     
     # Substituir NaN e valores vazios por string vazia
@@ -162,7 +162,7 @@ def validate():
         
         print(f"[DEBUG] Operador '{operador}' validando CPF: {cpf}")
         
-        df = pd.read_csv(arquivo, encoding='latin1', dtype=str, on_bad_lines='skip')
+        df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
         df.columns = df.columns.str.lower()
         
         # Substituir NaN por string vazia
@@ -181,7 +181,7 @@ def validate():
         salvou = False
         for tentativa in range(max_tentativas):
             try:
-                df.to_csv(arquivo, index=False, encoding='latin1', mode='w')
+                df.to_csv(arquivo, index=False, encoding='utf-8-sig', mode='w')
                 print(f"[DEBUG] Arquivo salvo com sucesso na tentativa {tentativa + 1}")
                 salvou = True
                 break
@@ -218,7 +218,7 @@ def preencher_campos():
         if not numero or not nome or not cpf:
             return jsonify({"mensagem": "Todos os campos são obrigatórios."}), 400
 
-        df = pd.read_csv(arquivo, encoding='latin1', dtype=str, on_bad_lines='skip')
+        df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
         df.columns = df.columns.str.lower()
 
         mask = df["numero"] == numero
@@ -236,7 +236,7 @@ def preencher_campos():
         max_tentativas = 3
         for tentativa in range(max_tentativas):
             try:
-                df.to_csv(arquivo, index=False, encoding='latin1', mode='w')
+                df.to_csv(arquivo, index=False, encoding='utf-8-sig', mode='w')
                 break
             except PermissionError:
                 if tentativa < max_tentativas - 1:
@@ -307,6 +307,43 @@ def deletar_operador():
         return redirect(url_for("gerenciar_operadores", mensagem=f"Operador '{usuario}' removido com sucesso!", tipo="sucesso"))
     
     return redirect(url_for("gerenciar_operadores", mensagem=f"Operador '{usuario}' não encontrado", tipo="erro"))
+
+@app.route("/editar_operador", methods=["POST"])
+def editar_operador():
+    if 'operador' not in session or not eh_master():
+        return redirect(url_for("login"))
+    
+    usuario_antigo = request.form.get("usuario_antigo", "").strip()
+    usuario_novo = request.form.get("usuario", "").strip()
+    senha_nova = request.form.get("senha", "").strip()
+    
+    if not usuario_novo:
+        return redirect(url_for("gerenciar_operadores", mensagem="Nome de usuário é obrigatório", tipo="erro"))
+    
+    if usuario_novo == 'master':
+        return redirect(url_for("gerenciar_operadores", mensagem="Não é possível usar 'master' como nome de usuário", tipo="erro"))
+    
+    operadores = carregar_operadores()
+    
+    if usuario_antigo not in operadores:
+        return redirect(url_for("gerenciar_operadores", mensagem=f"Operador '{usuario_antigo}' não encontrado", tipo="erro"))
+    
+    # Se mudou o nome de usuário, verifica se o novo já existe
+    if usuario_antigo != usuario_novo and usuario_novo in operadores:
+        return redirect(url_for("gerenciar_operadores", mensagem=f"Operador '{usuario_novo}' já existe", tipo="erro"))
+    
+    # Pega a senha atual
+    senha_atual = operadores[usuario_antigo]['senha']
+    
+    # Remove o operador antigo
+    del operadores[usuario_antigo]
+    
+    # Adiciona com o novo nome e senha (se fornecida nova senha, usa ela; senão mantém a antiga)
+    operadores[usuario_novo] = {"senha": senha_nova if senha_nova else senha_atual}
+    
+    salvar_operadores(operadores)
+    
+    return redirect(url_for("gerenciar_operadores", mensagem=f"Operador atualizado com sucesso!", tipo="sucesso"))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
