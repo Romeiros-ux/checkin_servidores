@@ -200,7 +200,7 @@
             formItem.method = "post";
 
             // destacar o começo do CPF digitado
-            const numeroPulseiraStr = u.numero.toString();
+            const numeroPulseiraStr = u.numeracao.toString();
             const highlightNumero = `<span class="highlight">${numeroPulseiraStr.slice(0, numeroPulseira.length)}</span>${numeroPulseiraStr.slice(numeroPulseira.length)}`;
 
             formItem.innerHTML = `
@@ -225,8 +225,8 @@
             if (btnRegistrar) {
                 btnRegistrar.addEventListener("click", (e) => {
                     e.preventDefault();
-                    console.log("Número buscado:", u.numero); // ✅ Mostra no console
-                    abrirPopup(u.numero);
+                    console.log("Número buscado:", u.numeracao); // ✅ Mostra no console
+                    abrirPopup(u.numeracao);
                 });
             }
 

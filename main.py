@@ -106,7 +106,7 @@ def checkin():
 @app.route("/buscar", methods=["GET"])
 def buscar():
     df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
-    df.columns = df.columns.str.lower()
+    df.columns = df.columns.str.lower().str.strip()
     
     # Substituir NaN e valores vazios por string vazia
     df = df.fillna('')
@@ -138,7 +138,7 @@ def buscar_pulseira():
 @app.route("/buscar_numero", methods=["GET"])
 def buscar_numero():
     df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
-    df.columns = df.columns.str.lower()
+    df.columns = df.columns.str.lower().str.strip()
     
     # Substituir NaN e valores vazios por string vazia
     df = df.fillna('')
@@ -146,7 +146,7 @@ def buscar_numero():
     dados = df.to_dict(orient="records")
     query = request.args.get("numeroPulseira", "")
     resultado = [
-        u for u in dados if str(u["numero"]).startswith(query)
+        u for u in dados if str(u["numeracao"]).startswith(query)
     ]
     return jsonify(resultado)
 
@@ -163,7 +163,7 @@ def validate():
         print(f"[DEBUG] Operador '{operador}' validando CPF: {cpf}")
         
         df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
-        df.columns = df.columns.str.lower()
+        df.columns = df.columns.str.lower().str.strip()
         
         # Substituir NaN por string vazia
         df = df.fillna('')
@@ -219,9 +219,9 @@ def preencher_campos():
             return jsonify({"mensagem": "Todos os campos são obrigatórios."}), 400
 
         df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
-        df.columns = df.columns.str.lower()
+        df.columns = df.columns.str.lower().str.strip()
 
-        mask = df["numero"] == numero
+        mask = df["numeracao"] == numero
         if not mask.any():
             return jsonify({"mensagem": "Número não encontrado no arquivo."}), 404
 
