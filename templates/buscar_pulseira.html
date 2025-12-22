@@ -152,19 +152,6 @@
     <div id="resultados"></div>
 </div>
 
-<div id="popup">
-  <div>
-    <h3>Preencher dados</h3>
-    <input type="hidden" id="numero-popup">
-    <label>Nome:</label>
-    <input type="text" id="nome-popup"><br>
-    <label>CPF:</label>
-    <input type="text" id="cpf-popup"><br>
-    <button onclick="enviarDados()">Salvar</button>
-    <button onclick="fecharPopup()">Cancelar</button>
-  </div>
-</div>
-
 <script>
     const input = document.getElementById("numeroPulseira");
     const resultados = document.getElementById("resultados");
@@ -174,8 +161,6 @@
         input.value = "";
         resultados.innerHTML = "";
         input.focus();
-
-        fecharPopup()
     });
 
     input.addEventListener("input", async () => {
@@ -196,10 +181,10 @@
         dados.forEach(u => {
             const formItem = document.createElement("form");
             formItem.classList.add("itemForm"); // opcional para estilizar
-            formItem.action = "/preencher_campos"; // endpoint do back-end
+            formItem.action = "/checkin_validate"; // endpoint do back-end
             formItem.method = "post";
 
-            // destacar o começo do CPF digitado
+            // destacar o começo do número digitado
             const numeroPulseiraStr = u.numeracao.toString();
             const highlightNumero = `<span class="highlight">${numeroPulseiraStr.slice(0, numeroPulseira.length)}</span>${numeroPulseiraStr.slice(numeroPulseira.length)}`;
 
@@ -219,14 +204,12 @@
                 <input type="hidden" name="hidden_cpf" value="${u.cpf}">
             `;
 
-
-            // adicionar listener para evitar comportamento padrão se quiser processar via JS
-            const btnRegistrar = formItem.querySelector(".btnChecar");
-            if (btnRegistrar) {
-                btnRegistrar.addEventListener("click", (e) => {
+            // adicionar listener para validação
+            const btnChecar = formItem.querySelector(".btnChecar");
+            if (btnChecar) {
+                btnChecar.addEventListener("click", (e) => {
                     e.preventDefault();
-                    console.log("Número buscado:", u.numeracao); // ✅ Mostra no console
-                    abrirPopup(u.numeracao);
+                    validarUsuario(u.cpf, formItem);
                 });
             }
 
@@ -253,38 +236,6 @@
             rightDiv.innerHTML = '<div class="validBox">Checado <span class="validCheck">✔</span></div>';
         })
         .catch(err => console.error(err));
-    }
-
-    function abrirPopup(numero) {
-        document.getElementById("numero-popup").value = numero;
-        document.getElementById("popup").style.display = "block";
-    }
-
-    function fecharPopup() {
-        document.getElementById("popup").style.display = "none";
-    }
-
-    function enviarDados() {
-        const numero = document.getElementById("numero-popup").value;
-        const nome = document.getElementById("nome-popup").value.trim();
-        const cpf = document.getElementById("cpf-popup").value.trim();
-
-        if (!nome || !cpf) {
-            alert("Preencha todos os campos!");
-            return;
-        }
-
-        fetch("/preencher_campos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ numero, nome, cpf })
-        })
-        .then(res => res.json())
-        .then(data => {
-            fecharPopup();
-            // location.reload();
-            location.href = "/"
-        });
     }
 </script>
 {% endblock %}
