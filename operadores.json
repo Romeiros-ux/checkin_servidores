@@ -1,1 +1,32 @@
-{}
+{
+  "Bruna": {
+    "senha": "bruna"
+  },
+  "Yago": {
+    "senha": "calixto"
+  },
+  "Daniel": {
+    "senha": "siqueira"
+  },
+  "Guilherme": {
+    "senha": "paz"
+  },
+  "Jean": {
+    "senha": "marcel"
+  },
+  "Matheus": {
+    "senha": "soares"
+  },
+  "Alycia": {
+    "senha": "coelho"
+  },
+  "Beatriz": {
+    "senha": "bandeira"
+  },
+  "Gustavo": {
+    "senha": "henrique"
+  },
+  "Arthur": {
+    "senha": "nunes"
+  }
+}
