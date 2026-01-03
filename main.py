@@ -345,5 +345,149 @@ def editar_operador():
     
     return redirect(url_for("gerenciar_operadores", mensagem=f"Operador atualizado com sucesso!", tipo="sucesso"))
 
+@app.route("/infografico", methods=["GET"])
+def infografico():
+    if 'operador' not in session:
+        return redirect(url_for("login"))
+    return render_template("infografico.html", 
+                         operador=session.get('operador'),
+                         nivel=session.get('nivel'))
+
+@app.route("/api/estatisticas", methods=["GET"])
+def api_estatisticas():
+    if 'operador' not in session:
+        return jsonify({"error": "Não autenticado"}), 401
+    
+    try:
+        df = pd.read_csv(arquivo, encoding='utf-8-sig', dtype=str, on_bad_lines='skip')
+        df.columns = df.columns.str.lower().str.strip()
+        df = df.fillna('')
+        
+        # Estatísticas básicas
+        total_pessoas = len(df)
+        df_validados = df[df['validado'] == 'sim']
+        total_validados = len(df_validados)
+        taxa_validacao = round((total_validados / total_pessoas * 100), 1) if total_pessoas > 0 else 0
+        
+        # Operadores únicos
+        operadores_unicos = df_validados['validado_por'].unique()
+        total_operadores = len([op for op in operadores_unicos if op])
+        
+        # Secretarias únicas
+        secretarias_unicas = df['secretaria'].unique()
+        total_secretarias = len([sec for sec in secretarias_unicas if sec])
+        
+        # Tempo médio entre check-ins
+        tempo_medio = 0
+        if len(df_validados) > 1:
+            try:
+                df_validados_copy = df_validados.copy()
+                df_validados_copy['data_validacao_dt'] = pd.to_datetime(
+                    df_validados_copy['data_validacao'], 
+                    format='%d/%m/%Y %H:%M:%S',
+                    errors='coerce'
+                )
+                df_validados_copy = df_validados_copy.dropna(subset=['data_validacao_dt'])
+                df_validados_copy = df_validados_copy.sort_values('data_validacao_dt')
+                
+                if len(df_validados_copy) > 1:
+                    diferencas = df_validados_copy['data_validacao_dt'].diff()
+                    tempo_medio_segundos = diferencas.dt.total_seconds().mean()
+                    tempo_medio = int(tempo_medio_segundos) if not pd.isna(tempo_medio_segundos) else 0
+            except:
+                tempo_medio = 0
+        
+        # Check-ins por hora
+        checkins_por_hora = {'labels': [], 'values': []}
+        if len(df_validados) > 0:
+            try:
+                df_validados_copy = df_validados.copy()
+                df_validados_copy['data_validacao_dt'] = pd.to_datetime(
+                    df_validados_copy['data_validacao'], 
+                    format='%d/%m/%Y %H:%M:%S',
+                    errors='coerce'
+                )
+                df_validados_copy = df_validados_copy.dropna(subset=['data_validacao_dt'])
+                df_validados_copy['hora'] = df_validados_copy['data_validacao_dt'].dt.hour
+                
+                por_hora = df_validados_copy.groupby('hora').size().reset_index(name='count')
+                checkins_por_hora['labels'] = [f"{int(h)}:00" for h in por_hora['hora']]
+                checkins_por_hora['values'] = por_hora['count'].tolist()
+            except:
+                pass
+        
+        # Performance dos operadores
+        operadores_stats = {'labels': [], 'values': []}
+        if len(df_validados) > 0:
+            por_operador = df_validados[df_validados['validado_por'] != ''].groupby('validado_por').size().reset_index(name='count')
+            por_operador = por_operador.sort_values('count', ascending=False)
+            operadores_stats['labels'] = por_operador['validado_por'].tolist()
+            operadores_stats['values'] = por_operador['count'].tolist()
+        
+        # Top 10 secretarias
+        top_secretarias = {'labels': [], 'values': []}
+        if len(df_validados) > 0:
+            por_secretaria = df_validados[df_validados['secretaria'] != ''].groupby('secretaria').size().reset_index(name='count')
+            por_secretaria = por_secretaria.sort_values('count', ascending=False).head(10)
+            top_secretarias['labels'] = [sec[:50] + '...' if len(sec) > 50 else sec for sec in por_secretaria['secretaria'].tolist()]
+            top_secretarias['values'] = por_secretaria['count'].tolist()
+        
+        # Todas as secretarias com progresso
+        todas_secretarias = []
+        if len(df) > 0:
+            for secretaria in df['secretaria'].unique():
+                if secretaria:
+                    df_sec = df[df['secretaria'] == secretaria]
+                    total_sec = len(df_sec)
+                    validados_sec = len(df_sec[df_sec['validado'] == 'sim'])
+                    todas_secretarias.append({
+                        'nome': secretaria[:60] + '...' if len(secretaria) > 60 else secretaria,
+                        'total': total_sec,
+                        'validados': validados_sec
+                    })
+            todas_secretarias = sorted(todas_secretarias, key=lambda x: x['validados'], reverse=True)
+        
+        # Últimos 10 check-ins
+        ultimos_checkins = []
+        if len(df_validados) > 0:
+            try:
+                df_validados_copy = df_validados.copy()
+                df_validados_copy['data_validacao_dt'] = pd.to_datetime(
+                    df_validados_copy['data_validacao'], 
+                    format='%d/%m/%Y %H:%M:%S',
+                    errors='coerce'
+                )
+                df_validados_copy = df_validados_copy.dropna(subset=['data_validacao_dt'])
+                df_validados_copy = df_validados_copy.sort_values('data_validacao_dt', ascending=False).head(10)
+                
+                for _, row in df_validados_copy.iterrows():
+                    ultimos_checkins.append({
+                        'nome': row['nome'],
+                        'secretaria': row['secretaria'][:50] + '...' if len(row['secretaria']) > 50 else row['secretaria'],
+                        'validado_por': row['validado_por'],
+                        'data_validacao': row['data_validacao']
+                    })
+            except:
+                pass
+        
+        return jsonify({
+            'total_pessoas': total_pessoas,
+            'total_validados': total_validados,
+            'taxa_validacao': taxa_validacao,
+            'total_operadores': total_operadores,
+            'total_secretarias': total_secretarias,
+            'tempo_medio_checkin': tempo_medio,
+            'checkins_por_hora': checkins_por_hora,
+            'operadores': operadores_stats,
+            'top_secretarias': top_secretarias,
+            'todas_secretarias': todas_secretarias,
+            'ultimos_checkins': ultimos_checkins
+        })
+    except Exception as e:
+        print(f"[ERRO] Erro ao gerar estatísticas: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
